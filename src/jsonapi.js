@@ -98,7 +98,7 @@ export const createResource = (resource, {
   onError: onError = noop,
   endpoint: endpointOverride = undefined,
   headers: headersOverride = {},
-  wrapData: wrapDataOverride = false,
+  wrapData: wrapDataOverride = true,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
@@ -116,7 +116,7 @@ export const createResource = (resource, {
     let body = {
       data: resource
     };
-    if (wrapDataOverride === true) {
+    if (wrapDataOverride === false) {
       body = resource;
     }
 
@@ -146,7 +146,7 @@ export const readEndpoint = (endpoint, {
   onSuccess: onSuccess = noop,
   onError: onError = noop,
   headers: headersOverride = {},
-  wrapData: wrapDataOverride = false,
+  wrapData: wrapDataOverride = true,
   options = {
     indexLinks: undefined,
   }
@@ -188,7 +188,7 @@ export const updateResource = (resource, {
   onError: onError = noop,
   endpoint: endpointOverride = undefined,
   headers: headersOverride = {},
-  wrapData: wrapDataOverride = false,
+  wrapData: wrapDataOverride = true,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
@@ -205,7 +205,7 @@ export const updateResource = (resource, {
     let body = {
       data: resource
     };
-    if (wrapDataOverride === true) {
+    if (wrapDataOverride === false) {
       body = resource;
     }
 
@@ -236,7 +236,7 @@ export const deleteResource = (resource, {
   onError: onError = noop,
   endpoint: endpointOverride = undefined,
   headers: headersOverride = {},
-  wrapData: wrapDataOverride = false,
+  wrapData: wrapDataOverride = true,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
@@ -276,7 +276,7 @@ export const requireResource = (resourceType, endpoint = resourceType, {
   onSuccess: onSuccess = noop,
   onError: onError = noop,
   headers: headersOverride = {},
-  wrapData: wrapDataOverride = false,
+  wrapData: wrapDataOverride = true,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
