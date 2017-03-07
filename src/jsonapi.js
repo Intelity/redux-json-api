@@ -147,6 +147,9 @@ export const readEndpoint = (endpoint, {
   onError: onError = noop,
   headers: headersOverride = {},
   wrapData: wrapDataOverride = false,
+  options = {
+    indexLinks: undefined,
+  }
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
