@@ -107,11 +107,11 @@ export const createResource = (resource, {
 
   return (dispatch, getState) => {
     const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
-    let endpoint = `${apiHost}${apiPath}/${resource.type}`;
+    let endpoint = `${resource.type}`;
     if (endpointOverride !== undefined) {
-      endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
+      endpoint = endpointOverride;
     }
-
+    const apiEndpoint = `${apiHost}${apiPath}/${endpoint}`;
     dispatch(apiWillCreate({ resource, endpoint, options }));
 
     let body = {
@@ -122,7 +122,7 @@ export const createResource = (resource, {
     }
 
     return new Promise((resolve, reject) => {
-      apiRequest(endpoint, {
+      apiRequest(apiEndpoint, {
         headers: Object.assign({}, headers, headersOverride),
         method: 'POST',
         credentials: 'include',
@@ -165,7 +165,7 @@ export const readEndpoint = (endpoint, {
     const apiEndpoint = `${apiHost}${apiPath}/${endpoint}`;
 
     return new Promise((resolve, reject) => {
-      apiRequest(`${apiEndpoint}`, {
+      apiRequest(apiEndpoint, {
         headers: Object.assign({}, headers, headersOverride),
         credentials: 'include'
       })
@@ -201,10 +201,11 @@ export const updateResource = (resource, {
   return (dispatch, getState) => {
 
     const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
-    let endpoint = `${apiHost}${apiPath}/${resource.type}/${resource.id}`;
+    let endpoint = `${resource.type}/${resource.id}`;
     if (endpointOverride !== undefined) {
-      endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
+      endpoint = endpointOverride;
     }
+    const apiEndpoint = `${apiHost}${apiPath}/${endpoint}`;
     dispatch(apiWillUpdate({ resource, endpoint, options }));
 
     let body = {
@@ -215,7 +216,7 @@ export const updateResource = (resource, {
     }
 
     return new Promise((resolve, reject) => {
-      apiRequest(endpoint, {
+      apiRequest(apiEndpoint, {
         headers: Object.assign({}, headers, headersOverride),
         method: 'PATCH',
         credentials: 'include',
@@ -253,14 +254,15 @@ export const deleteResource = (resource, {
   return (dispatch, getState) => {
 
     const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
-    let endpoint = `${apiHost}${apiPath}/${resource.type}/${resource.id}`;
+    let endpoint = `${resource.type}/${resource.id}`;
     if (endpointOverride !== undefined) {
-      endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
+      endpoint = endpointOverride;
     }
+    const apiEndpoint = `${apiHost}${apiPath}/${endpoint}`;
     dispatch(apiWillDelete({ resource, endpoint, options }));
 
     return new Promise((resolve, reject) => {
-      apiRequest(endpoint, {
+      apiRequest(apiEndpoint, {
         headers: Object.assign({}, headers, headersOverride),
         method: 'DELETE',
         credentials: 'include'
