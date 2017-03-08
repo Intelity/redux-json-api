@@ -105,13 +105,13 @@ export const createResource = (resource, {
   }
 
   return (dispatch, getState) => {
-    dispatch(apiWillCreate(resource));
-
     const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
     let endpoint = `${apiHost}${apiPath}/${resource.type}`;
     if (endpointOverride !== undefined) {
       endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
     }
+
+    dispatch(apiWillCreate({ resource, endpoint }));
 
     let body = {
       data: resource
@@ -127,12 +127,13 @@ export const createResource = (resource, {
         credentials: 'include',
         body: JSON.stringify(body)
       }).then(json => {
-        dispatch(apiCreated(json));
+        dispatch(apiCreated({ resource: json, endpoint }));
         onSuccess(json);
         resolve(json);
       }).catch(error => {
         const err = error;
         err.resource = resource;
+        err.endpoint = endpoint;
 
         dispatch(apiCreateFailed(err));
         onError(err);
@@ -156,7 +157,7 @@ export const readEndpoint = (endpoint, {
   }
 
   return (dispatch, getState) => {
-    dispatch(apiWillRead(endpoint));
+    dispatch(apiWillRead({ endpoint, options }));
 
     const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
     const apiEndpoint = `${apiHost}${apiPath}/${endpoint}`;
@@ -174,6 +175,7 @@ export const readEndpoint = (endpoint, {
         .catch(error => {
           const err = error;
           err.endpoint = endpoint;
+          err.options = options;
 
           dispatch(apiReadFailed(err));
           onError(err);
@@ -194,13 +196,13 @@ export const updateResource = (resource, {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
   }
   return (dispatch, getState) => {
-    dispatch(apiWillUpdate(resource));
 
     const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
     let endpoint = `${apiHost}${apiPath}/${resource.type}/${resource.id}`;
     if (endpointOverride !== undefined) {
       endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
     }
+    dispatch(apiWillUpdate({ resource, endpoint }));
 
     let body = {
       data: resource
@@ -216,12 +218,13 @@ export const updateResource = (resource, {
         credentials: 'include',
         body: JSON.stringify(body)
       }).then(json => {
-        dispatch(apiUpdated(json));
+        dispatch(apiUpdated({ resource: json, endpoint }));
         onSuccess(json);
         resolve(json);
       }).catch(error => {
         const err = error;
         err.resource = resource;
+        err.endpoint = endpoint;
 
         dispatch(apiUpdateFailed(err));
         onError(err);
@@ -243,13 +246,13 @@ export const deleteResource = (resource, {
   }
 
   return (dispatch, getState) => {
-    dispatch(apiWillDelete(resource));
 
     const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
     let endpoint = `${apiHost}${apiPath}/${resource.type}/${resource.id}`;
     if (endpointOverride !== undefined) {
       endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
     }
+    dispatch(apiWillDelete({ resource, endpoint }));
 
     return new Promise((resolve, reject) => {
       apiRequest(endpoint, {
@@ -257,12 +260,13 @@ export const deleteResource = (resource, {
         method: 'DELETE',
         credentials: 'include'
       }).then(() => {
-        dispatch(apiDeleted(resource));
+        dispatch(apiDeleted({ resource, endpoint }));
         onSuccess();
         resolve();
       }).catch(error => {
         const err = error;
         err.resource = resource;
+        err.endpoint = endpoint;
 
         dispatch(apiDeleteFailed(err));
         onError(err);
@@ -345,7 +349,7 @@ export const reducer = handleActions({
     return imm(state).set(['isCreating'], state.isCreating + 1).value();
   },
 
-  [API_CREATED]: (state, { payload: resources }) => {
+  [API_CREATED]: (state, { payload: { resource: resources } }) => {
     const entities = Array.isArray(resources.data) ? resources.data : [resources.data];
 
     const newState = updateOrInsertResourcesIntoState(
@@ -366,15 +370,15 @@ export const reducer = handleActions({
     return imm(state).set(['isReading'], state.isReading + 1).value();
   },
 
-  [API_READ]: (state, { payload }) => {
+  [API_READ]: (state, { payload: { resource } }) => {
     const resources = (
-      Array.isArray(payload.data)
-        ? payload.data
-        : [payload.data]
-    ).concat(payload.included || []);
+      Array.isArray(resource.data)
+        ? resource.data
+        : [resource.data]
+    ).concat(resource.included || []);
 
     const newState = updateOrInsertResourcesIntoState(state, resources);
-    const finalState = addLinksToState(newState, payload.links, payload.options);
+    const finalState = addLinksToState(newState, resource.links, resource.options);
 
     return imm(finalState)
       .set('isReading', state.isReading - 1)
@@ -385,7 +389,7 @@ export const reducer = handleActions({
     return imm(state).set(['isReading'], state.isReading - 1).value();
   },
 
-  [API_WILL_UPDATE]: (state, { payload: resource }) => {
+  [API_WILL_UPDATE]: (state, { payload: { resource } }) => {
     const { type, id } = resource;
 
     const newState = ensureResourceTypeInState(state, type);
@@ -395,7 +399,7 @@ export const reducer = handleActions({
       .value();
   },
 
-  [API_UPDATED]: (state, { payload: resources }) => {
+  [API_UPDATED]: (state, { payload: { resource: resources } }) => {
     const entities = Array.isArray(resources.data) ? resources.data : [resources.data];
 
     const newState = updateOrInsertResourcesIntoState(
@@ -416,7 +420,7 @@ export const reducer = handleActions({
       .value();
   },
 
-  [API_WILL_DELETE]: (state, { payload: resource }) => {
+  [API_WILL_DELETE]: (state, { payload: { resource } }) => {
     const { type, id } = resource;
 
     return setIsInvalidatingForExistingResource(state, { type, id }, IS_DELETING)
@@ -424,7 +428,7 @@ export const reducer = handleActions({
       .value();
   },
 
-  [API_DELETED]: (state, { payload: resource }) => {
+  [API_DELETED]: (state, { payload: { resource } }) => {
     return removeResourceFromState(state, resource)
       .set('isDeleting', state.isDeleting - 1)
       .value();

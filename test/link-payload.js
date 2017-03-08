@@ -11,7 +11,7 @@ describe('[State mutation] Insertion of links', () => {
   it('should not insert links into state when indexLinks is blank', () => {
     const state = {};
 
-    const updatedState = reducer(state, apiRead(postsPayload));
+    const updatedState = reducer(state, apiRead({ resource: postsPayload }));
 
     expect(updatedState.posts.data.length).toEqual(postsPayload.data.length);
     expect(updatedState.links).toEqual(undefined);
@@ -23,7 +23,7 @@ describe('[State mutation] Insertion of links', () => {
     const indexPayload = postsPayload;
     indexPayload.options = { indexLinks: 'posts' };
 
-    const updatedState = reducer(state, apiRead(postsPayload));
+    const updatedState = reducer(state, apiRead({ resource: postsPayload }));
 
     expect(updatedState.posts.data.length).toEqual(postsPayload.data.length);
     expect(updatedState.links.posts.length).toEqual(postsPayload.links.length);

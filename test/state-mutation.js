@@ -238,7 +238,7 @@ describe('[State Mutation] Update or Reverse relationships', () => {
 
   it('should not duplicate existing reverse relationships', () => {
     const apiUpdated = createAction('API_UPDATED');
-    const updatedState = reducer(apiState, apiUpdated(patchedResource));
+    const updatedState = reducer(apiState, apiUpdated({ resource: { data: patchedResource }}));
 
     expect(
       updatedState.zenAccounts.data[0].relationships.expenseItems.data.length

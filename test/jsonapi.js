@@ -167,31 +167,33 @@ const taskWithTransaction = {
 };
 
 const taskWithTransactions = {
-  type: 'tasks',
-  id: '43',
-  attributes: {
-    name: 'ABC',
-    createdAt: '2016-02-19T11:52:43+0000',
-    updatedAt: '2016-02-19T11:52:43+0000'
-  },
-  relationships: {
-    taskList: {
-      data: {
-        type: 'taskLists',
-        id: '1'
+  data: {
+    type: 'tasks',
+    id: '43',
+    attributes: {
+      name: 'ABC',
+      createdAt: '2016-02-19T11:52:43+0000',
+      updatedAt: '2016-02-19T11:52:43+0000'
+    },
+    relationships: {
+      taskList: {
+        data: {
+          type: 'taskLists',
+          id: '1'
+        }
+      },
+      transaction: {
+        data: [
+          {
+            type: 'transactions',
+            id: '34'
+          }
+        ]
       }
     },
-    transaction: {
-      data: [
-        {
-          type: 'transactions',
-          id: '34'
-        }
-      ]
+    links: {
+      self: 'http://localhost/tasks/43'
     }
-  },
-  links: {
-    self: 'http://localhost/tasks/43'
   }
 };
 
@@ -390,12 +392,12 @@ const payloadWithNonMatchingReverseRelationships = require('./payloads/withNonMa
 
 describe('Creation of new resources', () => {
   it('should automatically organize new resource in new key on state', () => {
-    const updatedState = reducer(state, apiCreated(taskWithoutRelationship));
+    const updatedState = reducer(state, apiCreated({ resource: taskWithoutRelationship }));
     expect(updatedState.tasks).toBeAn('object');
   });
 
   it('should add reverse relationship when inserting new resource', () => {
-    const updatedState = reducer(state, apiCreated(taskWithTransaction));
+    const updatedState = reducer(state, apiCreated({ resource: taskWithTransaction }));
 
     const { data: taskRelationship } = updatedState.transactions.data[0].relationships.task;
 
@@ -405,20 +407,20 @@ describe('Creation of new resources', () => {
   });
 
   it('should handle multiple resources', () => {
-    const updatedState = reducer(state, apiCreated(multipleResources));
+    const updatedState = reducer(state, apiCreated({ resource: multipleResources }));
     expect(updatedState.tasks).toBeAn('object');
   });
 });
 
 describe('Reading resources', () => {
   it('should append read resources to state', () => {
-    const updatedState = reducer(state, apiRead(readResponse));
+    const updatedState = reducer(state, apiRead({ resource: readResponse }));
     expect(updatedState.tasks).toBeAn('object');
     expect(updatedState.tasks.data.length).toEqual(1);
   });
 
   it('should append included resources in state', () => {
-    const updatedState = reducer(state, apiRead(readResponseWithIncluded));
+    const updatedState = reducer(state, apiRead({ resource: readResponseWithIncluded }));
     expect(
       updatedState.transactions.data.length
     ).toEqual(
@@ -427,20 +429,20 @@ describe('Reading resources', () => {
   });
 
   it('should handle response where data is an object', () => {
-    const updatedState = reducer(undefined, apiRead(responseDataWithSingleResource));
+    const updatedState = reducer(undefined, apiRead({ resource: responseDataWithSingleResource }));
     expect(updatedState.users).toBeAn('object');
     expect(updatedState.companies).toBeAn('object');
   });
 
   it('should handle response with a one to many relationship', () => {
-    const updatedState = reducer(state, apiRead(responseDataWithOneToManyRelationship));
+    const updatedState = reducer(state, apiRead({ resource: responseDataWithOneToManyRelationship }));
     expect(updatedState.users).toBeAn('object');
     expect(updatedState.companies).toBeAn('object');
     expect(updatedState.users.data[0].relationships.companies.data).toBeAn('array');
   });
 
   it('should ignore reverse relationship with no matching resource', () => {
-    const updatedState = reducer(state, apiRead(payloadWithNonMatchingReverseRelationships));
+    const updatedState = reducer(state, apiRead({ resource: payloadWithNonMatchingReverseRelationships }));
 
     payloadWithNonMatchingReverseRelationships.included
       .filter(resource => resource.type === 'reports')
@@ -457,7 +459,7 @@ const zip = rows => rows[0].map((_, c) => rows.map(row => row[c]));
 
 describe('Updating resources', () => {
   it('should persist in state and preserve order', () => {
-    const updatedState = reducer(state, apiUpdated(updatedUser));
+    const updatedState = reducer(state, apiUpdated({ resource: updatedUser }));
     expect(state.users.data[0].attributes.name).toNotEqual(updatedUser.data.attributes.name);
     expect(updatedState.users.data[0].attributes.name).toEqual(updatedUser.data.attributes.name);
     zip([updatedState.users.data, state.users.data]).forEach((a, b) => expect(a.id).toEqual(b.id));
@@ -465,22 +467,22 @@ describe('Updating resources', () => {
 
   it('should be able to update a resource before type is in state', () => {
     const userToUpdate = state.users.data[0];
-    const stateWithResourceType = reducer(stateWithoutUsersResource, apiWillUpdate(userToUpdate));
-    const updatedState = reducer(stateWithResourceType, apiUpdated(updatedUser));
+    const stateWithResourceType = reducer(stateWithoutUsersResource, apiWillUpdate({ resource: userToUpdate }));
+    const updatedState = reducer(stateWithResourceType, apiUpdated({ resource: updatedUser }));
     expect(updatedState.users.data[0]).toEqual(updatedUser.data);
   });
 });
 
 describe('Delete resources', () => {
   it('should remove resource from state', () => {
-    const updatedState = reducer(state, apiDeleted(transactionToDelete));
+    const updatedState = reducer(state, apiDeleted({ resource: transactionToDelete }));
     expect(updatedState.transactions.data.length).toEqual(0);
   });
 
   it('should remove reverse relationship', () => {
-    const stateWithTask = reducer(state, apiCreated(taskWithTransaction));
+    const stateWithTask = reducer(state, apiCreated({ resource: taskWithTransaction }));
     expect(stateWithTask.transactions.data[0].relationships.task.data.type).toEqual(taskWithTransaction.data.type);
-    const stateWithoutTask = reducer(stateWithTask, apiDeleted(taskWithTransaction.data));
+    const stateWithoutTask = reducer(stateWithTask, apiDeleted({ resource: taskWithTransaction.data }));
     const { data: relationship } = stateWithoutTask.transactions.data[0].relationships.task;
     expect(relationship).toEqual(null);
   });
@@ -488,27 +490,27 @@ describe('Delete resources', () => {
   describe('when one-to-many relationship', () => {
     it('should update reverse relationship for transaction', () => {
       // Add task with transactions to state
-      const stateWithTask = reducer(state, apiCreated(taskWithTransactions));
+      const stateWithTask = reducer(state, apiCreated({ resource: taskWithTransactions }));
       // Update relation between transaction and task
-      const stateWithTaskWithTransaction = reducer(stateWithTask, apiUpdated(transactionWithTask));
+      const stateWithTaskWithTransaction = reducer(stateWithTask, apiUpdated({ resource: { data: transactionWithTask } }));
 
-      expect(stateWithTaskWithTransaction.transactions.data[0].relationships.task.data.type).toEqual(taskWithTransactions.type);
+      expect(stateWithTaskWithTransaction.transactions.data[0].relationships.task.data.type).toEqual(taskWithTransactions.data.type);
 
-      const stateWithoutTask = reducer(stateWithTask, apiDeleted(taskWithTransaction));
+      const stateWithoutTask = reducer(stateWithTask, apiDeleted({ resource: taskWithTransaction.data }));
       const { data: relationship } = stateWithoutTask.transactions.data[0].relationships.task;
       expect(relationship).toEqual(null);
     });
 
     it('should update reverse relationship for task', () => {
       // Add task with transactions to state
-      const stateWithTask = reducer(state, apiCreated(taskWithTransactions));
+      const stateWithTask = reducer(state, apiCreated({ resource: taskWithTransactions }));
       // Update relation between transaction and task
       // TODO: check relationshiphs on create resource
-      const stateWithTaskWithTransaction = reducer(stateWithTask, apiUpdated(transactionWithTask));
+      const stateWithTaskWithTransaction = reducer(stateWithTask, apiUpdated({ resource: { data: transactionWithTask } }));
 
-      expect(stateWithTaskWithTransaction.transactions.data[0].id).toEqual(taskWithTransactions.relationships.transaction.data[0].id);
+      expect(stateWithTaskWithTransaction.transactions.data[0].id).toEqual(taskWithTransactions.data.relationships.transaction.data[0].id);
 
-      const stateWithoutTransaction = reducer(stateWithTask, apiDeleted(transactionWithTask));
+      const stateWithoutTransaction = reducer(stateWithTask, apiDeleted({ resource: transactionWithTask }));
       const { data: relationship } = stateWithoutTransaction.tasks.data[0].relationships.transaction;
       expect(relationship).toEqual([]);
     });
@@ -559,19 +561,19 @@ describe('Endpoint values', () => {
 
 describe('Invalidating flag', () => {
   it('should set before delete', () => {
-    const updatedState = reducer(state, apiWillDelete(state.users.data[0]));
+    const updatedState = reducer(state, apiWillDelete({ resource: state.users.data[0] }));
     expect(updatedState.users.data[0].isInvalidating).toEqual(IS_DELETING);
   });
 
   it('should set before update', () => {
-    const updatedState = reducer(state, apiWillUpdate(state.users.data[0]));
+    const updatedState = reducer(state, apiWillUpdate({ resource: state.users.data[0] }));
     expect(updatedState.users.data[0].isInvalidating).toEqual(IS_UPDATING);
   });
 
   it('should be removed after update', () => {
     const updatedState = reducer(
-      reducer(state, apiWillUpdate(state.users.data[0])),
-      apiUpdated(state.users)
+      reducer(state, apiWillUpdate({ resource: state.users.data[0] })),
+      apiUpdated({ resource: state.users })
     );
     expect(updatedState.users.data[0].isInvalidating).toNotExist();
   });
