@@ -99,6 +99,7 @@ export const createResource = (resource, {
   endpoint: endpointOverride = undefined,
   headers: headersOverride = {},
   wrapData: wrapDataOverride = true,
+  options,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
@@ -111,7 +112,7 @@ export const createResource = (resource, {
       endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
     }
 
-    dispatch(apiWillCreate({ resource, endpoint }));
+    dispatch(apiWillCreate({ resource, endpoint, options }));
 
     let body = {
       data: resource
@@ -127,13 +128,14 @@ export const createResource = (resource, {
         credentials: 'include',
         body: JSON.stringify(body)
       }).then(json => {
-        dispatch(apiCreated({ resource: json, endpoint }));
+        dispatch(apiCreated({ resource: json, endpoint, options }));
         onSuccess(json);
         resolve(json);
       }).catch(error => {
         const err = error;
         err.resource = resource;
         err.endpoint = endpoint;
+        err.options = options;
 
         dispatch(apiCreateFailed(err));
         onError(err);
@@ -168,7 +170,7 @@ export const readEndpoint = (endpoint, {
         credentials: 'include'
       })
         .then(json => {
-          dispatch(apiRead({ endpoint, options, ...json }));
+          dispatch(apiRead({ endpoint, options, resource: json }));
           onSuccess(json);
           resolve(json);
         })
@@ -191,6 +193,7 @@ export const updateResource = (resource, {
   endpoint: endpointOverride = undefined,
   headers: headersOverride = {},
   wrapData: wrapDataOverride = true,
+  options,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
@@ -202,7 +205,7 @@ export const updateResource = (resource, {
     if (endpointOverride !== undefined) {
       endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
     }
-    dispatch(apiWillUpdate({ resource, endpoint }));
+    dispatch(apiWillUpdate({ resource, endpoint, options }));
 
     let body = {
       data: resource
@@ -218,13 +221,14 @@ export const updateResource = (resource, {
         credentials: 'include',
         body: JSON.stringify(body)
       }).then(json => {
-        dispatch(apiUpdated({ resource: json, endpoint }));
+        dispatch(apiUpdated({ resource: json, endpoint, options }));
         onSuccess(json);
         resolve(json);
       }).catch(error => {
         const err = error;
         err.resource = resource;
         err.endpoint = endpoint;
+        err.options = options;
 
         dispatch(apiUpdateFailed(err));
         onError(err);
@@ -240,6 +244,7 @@ export const deleteResource = (resource, {
   endpoint: endpointOverride = undefined,
   headers: headersOverride = {},
   wrapData: wrapDataOverride = true,
+  options,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
@@ -252,7 +257,7 @@ export const deleteResource = (resource, {
     if (endpointOverride !== undefined) {
       endpoint = `${apiHost}${apiPath}/${endpointOverride}`;
     }
-    dispatch(apiWillDelete({ resource, endpoint }));
+    dispatch(apiWillDelete({ resource, endpoint, options }));
 
     return new Promise((resolve, reject) => {
       apiRequest(endpoint, {
@@ -260,13 +265,14 @@ export const deleteResource = (resource, {
         method: 'DELETE',
         credentials: 'include'
       }).then(() => {
-        dispatch(apiDeleted({ resource, endpoint }));
+        dispatch(apiDeleted({ resource, endpoint, options }));
         onSuccess();
         resolve();
       }).catch(error => {
         const err = error;
         err.resource = resource;
         err.endpoint = endpoint;
+        err.options = options;
 
         dispatch(apiDeleteFailed(err));
         onError(err);
@@ -281,6 +287,7 @@ export const requireResource = (resourceType, endpoint = resourceType, {
   onError: onError = noop,
   headers: headersOverride = {},
   wrapData: wrapDataOverride = true,
+  options,
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
@@ -294,7 +301,7 @@ export const requireResource = (resourceType, endpoint = resourceType, {
         return onSuccess();
       }
 
-      dispatch(readEndpoint(endpoint, { onSuccess, onError, headersOverride, wrapDataOverride }))
+      dispatch(readEndpoint(endpoint, { onSuccess, onError, headersOverride, wrapDataOverride, options }))
         .then(resolve)
         .catch(reject);
     });
