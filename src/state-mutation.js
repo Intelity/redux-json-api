@@ -194,12 +194,14 @@ export const updateOrInsertResourcesIntoState = (state, resources) => (
 );
 
 export const setIsInvalidatingForExistingResource = (state, { type, id }, value = null) => {
-  const idx = state[type].data.findIndex(e => e.id === id && e.type === type);
-  const updatePath = [type, 'data', idx, 'isInvalidating'];
-
-  return value === null
-    ? imm(state).del(updatePath)
-    : imm(state).set(updatePath, value);
+  if ({}.hasOwnProperty.call(state, type) === true) {
+    const idx = state[type].data.findIndex(e => e.id === id && e.type === type);
+    const updatePath = [type, 'data', idx, 'isInvalidating'];
+    return value === null
+      ? imm(state).del(updatePath)
+      : imm(state).set(updatePath, value);
+  }
+  return imm(state);
 };
 
 export const ensureResourceTypeInState = (state, type) => {
