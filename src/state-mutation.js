@@ -159,34 +159,37 @@ export const updateOrInsertResource = (state, resource) => {
 };
 
 export const removeResourceFromState = (state, resource) => {
-  const index = state[resource.type].data.findIndex(e => e.id === resource.id);
-  const path = [resource.type, 'data', index];
-  const entityRelationships = resource.relationships || {};
+  if ({}.hasOwnProperty.call(state, resource.type) === true) {
+    const index = state[resource.type].data.findIndex(e => e.id === resource.id);
+    const path = [resource.type, 'data', index];
+    const entityRelationships = resource.relationships || {};
 
-  return Object.keys(entityRelationships).reduce((newState, key) => {
-    if (resource.relationships[key].data === null) {
+    return Object.keys(entityRelationships).reduce((newState, key) => {
+      if (resource.relationships[key].data === null) {
+        return newState;
+      }
+
+      const entityPath = [resource.relationships[key].data.type, 'data'];
+
+      if (hasOwnProperties(state, entityPath)) {
+        const updateReverseRelationship = makeUpdateReverseRelationship(
+          resource,
+          resource.relationships[key],
+          null
+        );
+
+        return newState.set(
+          entityPath,
+          updateReverseRelationship(
+            state[resource.relationships[key].data.type].data
+          )
+        );
+      }
+
       return newState;
-    }
-
-    const entityPath = [resource.relationships[key].data.type, 'data'];
-
-    if (hasOwnProperties(state, entityPath)) {
-      const updateReverseRelationship = makeUpdateReverseRelationship(
-        resource,
-        resource.relationships[key],
-        null
-      );
-
-      return newState.set(
-        entityPath,
-        updateReverseRelationship(
-          state[resource.relationships[key].data.type].data
-        )
-      );
-    }
-
-    return newState;
-  }, imm(state).del(path));
+    }, imm(state).del(path));
+  }
+  return imm(state);
 };
 
 export const updateOrInsertResourcesIntoState = (state, resources) => (
