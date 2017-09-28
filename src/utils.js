@@ -21,33 +21,28 @@ export const apiRequest = (url, options = {}) => {
 
   return new Promise((resolve, reject) => {
     const wrappedFetch = (n) => {
+      let x = n;
       fetch(url, options)
         .then(res => {
           if (res.status >= 200 && res.status < 300) {
             if (res.status === 204) {
-              resolve(res);
+              return resolve(res);
             } else if (jsonContentTypes.some(contentType => res.headers.get('Content-Type').indexOf(contentType) > -1)) {
-              resolve(res.json());
+              return resolve(res.json());
             }
           }
 
-          if (n > 0) {
-            setTimeout(() => {
-              wrappedFetch((n - 1));
-            }, retryDelay);
-          } else {
-            const e = new Error(res.statusText);
-            e.response = res;
-            throw e;
-          }
+          const e = new Error(res.statusText);
+          e.response = res;
+          throw e;
         })
         .catch((error) => {
-          if (n > 0) {
+          if (x > 0) {
             setTimeout(() => {
-              wrappedFetch((n - 1));
+              wrappedFetch(--x);
             }, retryDelay);
           } else {
-            reject(error);
+            return reject(error);
           }
         });
     };
