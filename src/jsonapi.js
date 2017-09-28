@@ -11,7 +11,9 @@ import {
 } from './state-mutation';
 import { apiRequest, noop, jsonContentTypes } from './utils';
 import {
-  API_SET_ENDPOINT_HOST, API_SET_ENDPOINT_PATH, API_SET_HEADERS, API_SET_HEADER, API_WILL_CREATE, API_CREATED, API_CREATE_FAILED, API_WILL_READ, API_READ, API_READ_FAILED, API_WILL_UPDATE, API_UPDATED, API_UPDATE_FAILED, API_WILL_DELETE, API_DELETED, API_DELETE_FAILED
+  API_SET_ENDPOINT_HOST, API_SET_ENDPOINT_PATH, API_SET_HEADERS, API_SET_HEADER, API_WILL_CREATE,
+  API_CREATED, API_CREATE_FAILED, API_WILL_READ, API_READ, API_READ_FAILED, API_WILL_UPDATE,
+  API_UPDATED, API_UPDATE_FAILED, API_WILL_DELETE, API_DELETED, API_DELETE_FAILED, API_CLEAR
 } from './constants';
 
 // Resource isInvalidating values
@@ -152,12 +154,13 @@ export const readEndpoint = (endpoint, {
   wrapData: wrapDataOverride = true,
   options = {
     indexLinks: undefined,
-  }
+    retries: 0,
+    retryDelay: 1000,
+  },
 } = {}) => {
   if (onSuccess !== noop || onError !== noop) {
     console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
   }
-
   return (dispatch, getState) => {
     dispatch(apiWillRead({ endpoint, options }));
 
@@ -167,7 +170,9 @@ export const readEndpoint = (endpoint, {
     return new Promise((resolve, reject) => {
       apiRequest(apiEndpoint, {
         headers: Object.assign({}, headers, headersOverride),
-        credentials: 'include'
+        credentials: 'include',
+        retries: options.retries,
+        retryDelay: options.retryDelay,
       })
         .then(json => {
           dispatch(apiRead({ endpoint, options, resource: json }));
