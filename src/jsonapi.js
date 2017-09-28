@@ -449,7 +449,19 @@ export const reducer = handleActions({
     return setIsInvalidatingForExistingResource(state, { type, id }, IS_DELETING)
       .set('isDeleting', state.isDeleting + 1)
       .value();
-  }
+  },
+
+  [API_CLEAR]: (state, { payload: { resource } }) => {
+    const { type } = resource;
+    const newState = Object.assign({}, state);
+
+    if ({}.hasOwnProperty.call(newState, type) === true) {
+      delete newState[type];
+    }
+
+    return imm(newState)
+      .value();
+  },
 
 }, {
   isCreating: 0,

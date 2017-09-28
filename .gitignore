@@ -22,3 +22,4 @@ lib
 .DS_Store
 .nvmrc
 .npmrc
+.idea

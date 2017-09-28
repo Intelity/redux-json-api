@@ -18,7 +18,8 @@ const actionTypes = {};
   'API_UPDATE_FAILED',
   'API_WILL_DELETE',
   'API_DELETED',
-  'API_DELETE_FAILED'
+  'API_DELETE_FAILED',
+  'API_CLEAR',
 ].forEach(action => { actionTypes[action] = action; });
 
 export default actionTypes;
