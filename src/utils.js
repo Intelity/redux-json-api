@@ -1,9 +1,13 @@
+import fetchPonyfill from 'fetch-ponyfill';
+
 export const jsonContentTypes = [
   'application/json',
   'application/vnd.api+json'
 ];
 
 // retry code modeled after: https://github.com/jonbern/fetch-retry/blob/52ffdb566c7d2238c35022d29dca3ce3d5b77750/index.js
+
+const { fetch } = fetchPonyfill();
 
 export const noop = () => {};
 
