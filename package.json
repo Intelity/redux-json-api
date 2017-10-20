@@ -1,6 +1,6 @@
 {
   "name": "@keypr/redux-json-api",
-  "version": "1.7.7",
+  "version": "1.7.8",
   "description": "A bunch of Redux actions, action creators and reducers to integrate with a JSON API",
   "main": "lib/jsonapi.js",
   "scripts": {
