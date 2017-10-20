@@ -1,5 +1,8 @@
+// Don't use native implementation cause it's not supported by NewRelic
+window.fetch = undefined;
+
 import { createAction, handleActions } from 'redux-actions';
-import 'fetch-everywhere';
+import 'whatwg-fetch';
 import imm from 'object-path-immutable';
 
 import {
