@@ -1,7 +1,6 @@
 import { createAction, handleActions } from 'redux-actions';
-import 'fetch-everywhere';
+import fetchPonyfill from 'fetch-ponyfill';
 import imm from 'object-path-immutable';
-
 import {
   addLinksToState,
   removeResourceFromState,
@@ -15,6 +14,8 @@ import {
   API_CREATED, API_CREATE_FAILED, API_WILL_READ, API_READ, API_READ_FAILED, API_WILL_UPDATE,
   API_UPDATED, API_UPDATE_FAILED, API_WILL_DELETE, API_DELETED, API_DELETE_FAILED, API_CLEAR
 } from './constants';
+
+const { fetch } = fetchPonyfill();
 
 // Resource isInvalidating values
 export const IS_DELETING = 'IS_DELETING';
